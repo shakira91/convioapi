@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Convio API Example</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+</head>
+<body>
+
+<div class="block block-block luminate-popup " style="display: block;">
+	<p class="luminate-popup-close">x</p>
+	<div id="luminateForm">
+	<input type="text" name="cons_email" id="luminateEmail" value="Enter your email" size="25">
+	<input type="submit" value="Submit" id="luminateSubmit">
+	</div>
+	<p id="success"></p>
+	<p id="form-errors" style=""></p>
+	<p id="submission-errors" style=""></p>
+</div>
+<script type="text/javascript">
+	
+	(function(){ 
+
+
+		var displayPopup = function() {
+			$('.luminate-popup').show(); 
+		}
+
+		var closePopUp = function() { 
+			$('.luminate-popup-close').click(function(){
+				$('.luminate-popup').fadeOut('slow');
+			});
+		}
+
+		var submissionSucces = function(userData) {
+
+				$('#success').html('Thank you. ' + '<strong>' + userData.primary_email + '</strong>' + ' has been added. Stay tuned!' );
+				$('#luminateForm, .luminate-popup h2.title').hide();
+		}
+		var submissionFailure = function() {
+
+				$('#submission-errors').html('Looks like you\'re already on our list. Please stay tuned for more HIAS updates.');
+				$('#luminateForm, .luminate-popup h2.title').hide();
+		}
+
+		var formError = function() {
+
+				$('#form-errors').html('Please enter a valid email addresss.');
+		}
+
+		var submitUserInfotoLuminate = function() {
+
+				var userEmailAddress = $("#luminateEmail").val();
+				var validateEmail = function() { 
+
+					var regEx = /^([\w-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$/;
+					if (regEx.test(userEmailAddress)) {
+						return true;
+					}
+				}
+
+				if (validateEmail()) {
+						var userData = {
+						method: 'create',
+						api_key: 'hiasapi',
+						v: '1.0',
+						sub_source: 'luminate popup submission',
+						primary_email: userEmailAddress
+					}
+
+					//CORS plugin
+					$.ajaxPrefilter(function(options) {
+				   	if (options.crossDomain && $.support.cors) {
+				       options.url = 'https://cors-anywhere.herokuapp.com/' + options.url;
+				   	}
+					});
+
+					$.ajax({
+						type: 'POST',
+						url: 'https://secure2.convio.net/hias/site/CRConsAPI',
+						data: userData,
+						dataType: 'xml',
+						crossDomain: true,
+						crossOrigin: true,
+						success: function() {
+							submissionSucces(userData); 
+							$('#success').show();
+							$('#form-errors, #submission-errors').hide();
+						},
+						error: function() {
+							submissionFailure();
+							$('submission-errors').show();
+							$('#form-errors, #success').hide();
+						}
+					});
+				}
+				
+				else {
+
+					formError();
+		
+				}
+			
+			}	
+
+	$("#luminateSubmit").on('click', function(){
+
+		submitUserInfotoLuminate();
+		
+
+	}); 
+
+
+})();
+</script>
+</body>
+</html>
+
